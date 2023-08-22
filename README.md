@@ -25,6 +25,12 @@ The TTAB package contains:
 In addition, the example scripts contain default models, optimizers, and evaluation code.
 New algorithms can be easily added and run on all of the TTAB datasets.
 
+## News
+
+- August 2023: We released a new benchmark dataset `Yearbook` with temporal shift. Similar to [Wild-Time](https://arxiv.org/abs/2211.14238), we use yearbook portraits (i.e., 14156 in-distribution photos in a random order) taken from 1930-1969 to pre-train a model (with a self-supervision auxiliary task) and use the other portraits (i.e., 19275 out-of-distribution photos arranged in the order of years) from 1970-2013 to test, which results in 98.8% in-distribution accuracy (98.0% reported in Wild-Time) and 82.4% out-of-distribution accuracy (79.5% reported in Wild-Time).
+- August 2023: We released a collection of experimental setups to help you reproduce our paper results. Check more details in [issue #4](https://github.com/LINs-lab/ttab/issues/4).
+- August 2023: We released an improved pretraining script based on what we used in our project, which can cover all of benchmark datasets mentioned in our paper except ImageNet.
+
 ## Installation
 To run a baseline test, please prepare the relevant pre-trained checkpoints for the base model and place them in `pretrain/ckpt/`.
 ### Requirements
@@ -40,6 +46,7 @@ The TTAB package depends on the following requirements:
 - scikit-learn>=1.0.3
 - scipy>=1.7.3
 - tqdm>=4.56.2
+- tyro>=0.5.5
 
 ## Datasets
 Distribution shift occurs when the test distribution differs from the training distribution, and it can considerably degrade performance of machine learning models deployed in the real world. The form of distribution shifts differs greatly across varying applications in practice. In TTAB, we collect 10 datasets and systematically sort them into 5 types of distribution shifts:
@@ -154,6 +161,16 @@ python run_exp.py
 
 Currently, before using the example script, you need to manually set up the `args` object in the `parameters.py`. This script is configured to use the default base model, dataset, evaluation protocol and reasonable hyperparameters.  
 
+We also provide a collection of experimental setups in `exps` to help you reproduce our paper results. For example, in order to run experiments listed in Table 2, you can create a `tmux` session and type in the following commands,
+```bash
+python run_exps.py --script_path exps/cifar10c.py --num_jobs_per_node 2 --num_jobs_per_script 1 --wait_in_seconds_per_job 3
+python run_exps.py --script_path exps/cifar100c.py --num_jobs_per_node 2 --num_jobs_per_script 1 --wait_in_seconds_per_job 3
+python run_exps.py --script_path exps/cifar10_1.py --num_jobs_per_node 2 --num_jobs_per_script 1 --wait_in_seconds_per_job 3
+python run_exps.py --script_path exps/imagenet-c.py --num_jobs_per_node 2 --num_jobs_per_script 1 --wait_in_seconds_per_job 3
+python run_exps.py --script_path exps/officehome.py --num_jobs_per_node 2 --num_jobs_per_script 1 --wait_in_seconds_per_job 3
+python run_exps.py --script_path exps/pacs.py --num_jobs_per_node 2 --num_jobs_per_script 1 --wait_in_seconds_per_job 3
+```
+
 <!-- ## Algorithms
 
 In the `ttab/model_adaptation` folder, we provide implementations of the TTA algorithms benchmarked in our paper. We use unified setups for the base model, datasets, hyperparameters, and evaluators, so new algorithms can be easily added and run on all of the TTAB datasets.
@@ -175,7 +192,15 @@ In addition to shared hyperparameters such as `lr`, `weight_decay`, `batch_size`
 In order to make a fair comparison across different TTA algorithms, we make reasonable modifications to these algorithms, which may induce inconsistency with their official implementation. -->
 
 ## Pretraining
-In this [link](https://drive.google.com/drive/folders/1ALNIYnnTJwqP80n9pEjSWtb_UdbcrsVi?usp=sharing), we provide a set of scripts that can be used to pre-train models on the in-distribution TTAB datasets. These pre-trained models were used to benchmark baselines in our paper. Note that we adopt self-supervised learning with a rotation prediction task to train the baseline model in our paper for a fair comparison. In practice, please feel free to choose whatever pre-training methods you prefer, but please pay attention to the setup of TTA methods.
+In `pretrain`, we provide an improved pretraining script based on what we used in our project, which can be used to pretrain the model on all of benchmark datasets used in our paper except ImageNet. Meanwhile, in this [link](https://drive.google.com/drive/folders/1KBbcNB6KR5Fqi6iueASLb85LxpkraX3K?usp=sharing), we release a set of checkpoints pretrained on the in-distribution TTAB datasets. These pre-trained models were used to benchmark baselines in our paper. Note that we adopt self-supervised learning with a rotation prediction task to train the baseline model in our paper for a fair comparison. In practice, please feel free to choose whatever pre-training methods you prefer, but please pay attention to the setup of TTA methods.
+```py
+python ssl_pretrain.py --data-name cifar10 --model-name resnet26
+python ssl_pretrain.py --data-name cifar100 --model-name resnet26
+python ssl_pretrain.py --data-name officehome_art --model-name resnet50 --entry-of-shared-layers layer3 --use-ls --lr 1e-2 --weight-decay 1e-4
+python ssl_pretrain.py --data-name pacs_art --model-name resnet50 --entry-of-shared-layers layer3 --use-ls --lr 1e-2 --weight-decay 1e-4
+python ssl_pretrain.py --data-name waterbirds --model-name resnet50 --entry-of-shared-layers layer3 --lr 1e-3 --weight-decay 1e-4
+python ssl_pretrain.py --data-name coloredmnist --model-name resnet18 --entry-of-shared-layers layer3 --lr 1e-3 --weight-decay 1e-4
+```
 <!-- ## Citing TTAB -->
 
 ## Bibliography
